@@ -11,37 +11,37 @@ use IEEE.NUMERIC_STD.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity memoire is
+entity screen_memory is
  port (
-    en_men : in std_logic;
-    R_W : in std_logic;
-    ce : in std_logic;
-    clk : in std_logic;
-    in_adr : in std_logic_vector(18 downto 0);
-    in_data: in std_logic_vector(7 downto 0);
-    out_data : out std_logic_vector(7 downto 0)
+      CLK       : in  std_logic;
+      RST       : in  std_logic;
+      EN_MEN    : in  std_logic;
+      R_WN      : in  std_logic;
+      ADDR      : in  std_logic_vector(18 downto 0);
+      DATA_IN   : in  std_logic_vector(7 downto 0);
+      DATA_OUT  : out std_logic_vector(7 downto 0)
     );
         
-end memoire;
+end screen_memory
 
-architecture Behavioral of memoire is
-type tab_mem is array (0 to 307199) of std_logic_vector(2 downto 0);
-signal my_table : tab_mem := (others => "11111111");
---signal my_table : tab_mem := (others =>"000");
+architecture rtl of screen_memory is
+
+type GRAM is array (0 to 307199) of std_logic_vector(2 downto 0);
+signal memory : GRAM := (others => (others => '1'));
+
 begin
-    mem : process(clk)
-    begin
-       
-        if(clk = '1' and clk'event) then
-         if(ce='1') then
-            if(en_men='1')then
-                if(R_W ='0') then
-                    out_data <= my_table(to_integer(unsigned(in_adr)));
-                else
-                    my_table(to_integer(unsigned(in_adr)))<=in_data;
-                end if;
-            end if;
-         end if;
+  ram : process(CLK)
+  begin
+    if( RST ='1') then
+      memory <= (others => (others => '1'));
+    elsif (rising_edge(CLK)) then
+      if(EN_MEN = '1') then
+        if(R_WN = '1') then
+            DATA_OUT <= memory(to_integer(unsigned(ADDR)));
+        else
+            memory(to_integer(unsigned(ADDR)))<= DATA_IN;
         end if;
-    end process;
-end Behavioral;
+      end if;
+    end if;
+  end process ram;
+end rtl;
